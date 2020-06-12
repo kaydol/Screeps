@@ -7,6 +7,7 @@ module.exports = function(creep) {
         creep.memory.repairing = false;
         creep.say('🔄 harvest');
     }
+    
     if(!creep.memory.repairing && creep.store.getFreeCapacity() == 0) {
         creep.memory.repairing = true;
         creep.say('🔨 repair');
@@ -30,7 +31,7 @@ module.exports = function(creep) {
             }));
             
             if (destination) {
-                creep.SetDestination(destination);
+                creep.SetDestination(destination.id);
             } else {
                 creep.Idle();
             }
