@@ -43,8 +43,10 @@ module.exports = function() {
         this.memory.moveToFailures = 0;
     },
     
-    Creep.prototype.FetchEnergy = function() {
+    Creep.prototype.FetchEnergy = function(roomWithEnergy) {
         var creep = this;
+        if (!roomWithEnergy) 
+            roomWithEnergy = creep.room;
         
         // Определяем куда ехать за ресурсами
         // Определяем 1 раз, после приезда на место стоим и пытаемся заполнится
@@ -69,8 +71,8 @@ module.exports = function() {
         }
         
         // Пытаемся найти ближайший контейнер с ресурсами
-        var containers = creep.room.find(FIND_STRUCTURES, { filter: (i) => i.structureType == STRUCTURE_CONTAINER });
-        var containersWithEnergy = creep.room.find(FIND_STRUCTURES, { filter: (i) => i.structureType == STRUCTURE_CONTAINER && i.store[RESOURCE_ENERGY] > 0 });
+        var containers = roomWithEnergy.find(FIND_STRUCTURES, { filter: (i) => i.structureType == STRUCTURE_CONTAINER });
+        var containersWithEnergy = roomWithEnergy.find(FIND_STRUCTURES, { filter: (i) => i.structureType == STRUCTURE_CONTAINER && i.store[RESOURCE_ENERGY] > 0 });
         // Ищем только тех шахтеров, которые находятся возле своего назначенного источника энергии
         var mineheads = _.filter(Game.creeps, (c) => c.GetRole() == creepManager.Roles.MINEHEAD.roleName && c.IsNearBoundSource());
         
@@ -100,13 +102,17 @@ module.exports = function() {
             if (containersWithEnergy.length) {
                 // Если нашли контейнер, едем к нему
                 var closest = creep.pos.findClosestByPath(containersWithEnergy);
-                creep.SetDestination(closest.id); 
+                if (closest) {
+                    creep.SetDestination(closest.id); 
+                } else {
+                    // Путь заблокирован крипами
+                }
             } else {
                 creep.Idle();
             }
         } else {
-             // Если в комнате нет контейнеров или шахтеров, которые их наполняют, едем к ближайщему источнику
-            var closest = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
+             // Если в комнате нет контейнеров или шахтеров, которые их наполняют, едем к ближайшему источнику
+            var closest = creep.pos.findClosestByPath(roomWithEnergy.find(FIND_SOURCES_ACTIVE));
             if (closest) {
                 creep.SetDestination(closest.id); 
             } else {

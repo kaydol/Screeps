@@ -30,6 +30,7 @@ module.exports = function(creep) {
                 creep.moveTo(closest, {visualizePathStyle: {stroke: '#ffffff'}});
             }
         } else {
+            // Все пристройки и важные здания заполнены энергией
             creep.Idle();
         }
     }

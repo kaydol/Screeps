@@ -16,7 +16,11 @@ ROLES = {
     HAULER : {spawnPriority: 2, roleName: 'Hauler', parts: [CARRY,MOVE,MOVE,MOVE,MOVE,MOVE], amount: 1, condition: true},
     BUILDER : {spawnPriority: 3, roleName: 'Builder', parts: [WORK,CARRY,CARRY,MOVE,MOVE], amount: 4, condition: true},
     COBBLER : {spawnPriority: 4, roleName: 'Cobbler', parts: [WORK,CARRY,CARRY,MOVE,MOVE], amount: 2, condition: true},
-    UPGRADER : {spawnPriority: 5, roleName: 'Upgrader', parts: [WORK,CARRY,CARRY,MOVE,MOVE], amount: 1, condition: true}
+    UPGRADER : {spawnPriority: 5, roleName: 'Upgrader', parts: [WORK,CARRY,CARRY,MOVE,MOVE], amount: 1, condition: true},
+    LONG_DISTANCE_MINER : {spawnPriority: 6, roleName: 'LongDistanceMiner', parts: [WORK,WORK,CARRY,CARRY,MOVE,MOVE], amount: 3, condition: 
+        Game.spawns['Spawn1'].room.find(FIND_STRUCTURES, { filter: (i) => i.structureType == STRUCTURE_CONTAINER || i.structureType == STRUCTURE_STORAGE }).length &&
+        _.filter(Game.flags, (flag) => flag.color == COLOR_YELLOW).length 
+    }
 };
 
 
