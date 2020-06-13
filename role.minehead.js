@@ -10,14 +10,15 @@ module.exports = function(creep) {
     }
 
     if (!creep.memory.harvesting) {
-        // Шахтер будет заполнит ближайший к нему контейнер, после чего прекратит работать
+        // Шахтер заполнит ближайший к нему контейнер, после чего прекратит работать
         var targets = creep.room.find(FIND_STRUCTURES, {
-                filter: (structure) => {
-                    return (structure.structureType == STRUCTURE_CONTAINER);
-                }
+            filter: (structure) => {
+                return (structure.structureType == STRUCTURE_CONTAINER);
+            }
         });
+        // TODO заполнять блиайший незаполненный контейнер
         if (targets.length > 0) {
-            var closest = creep.pos.findClosestByPath(targets)
+            var closest = creep.pos.findClosestByPath(targets, {ignoreCreeps: true})
             var errorCode = creep.transfer(closest, RESOURCE_ENERGY);
             if (errorCode == ERR_NOT_IN_RANGE) {
                 creep.moveTo(closest, {visualizePathStyle: {stroke: '#ffffff'}});
@@ -27,11 +28,11 @@ module.exports = function(creep) {
             }
         } else {
             creep.say("Idle");
-            creep.moveTo(creep.pos.findClosestByPath(FIND_MY_SPAWNS));
+            creep.moveTo(creep.pos.findClosestByPath(FIND_MY_SPAWNS, {ignoreCreeps: true}));
         }
     }
     else {
-        if (!creep.memory.boundSource) {
+        if (!creep.GetBoundSource()) {
             // назначаем крипу источник на котором он будет трудиться всю жизнь
             var currentRoom = creep.room;
 	        var sources = currentRoom.find(FIND_SOURCES);
@@ -40,7 +41,7 @@ module.exports = function(creep) {
 	        // смотрим по сколько крипов забиндено на каждый кристалл 
             for (var name in Memory.creeps) {
                 if (Game.creeps[name]) {
-                    var src = Game.creeps[name].memory.boundSource;
+                    var src = Game.creeps[name].GetBoundSource();
                     if (src) {
                         if (dictionary.has(src)) { 
                             dictionary.set(src, dictionary.get(src) + 1);
@@ -55,11 +56,11 @@ module.exports = function(creep) {
             
 	        // выбираем в качестве рабочего тот, на котором сейчас меньше всего рабочих
 	        var sourceWithTheLeastWorkers = [...dictionary.entries()].reduce((a, e) => e[1] < a[1] ? e : a);
-	        creep.memory.boundSource = sourceWithTheLeastWorkers[0];
+	        creep.SetBoundSource(sourceWithTheLeastWorkers[0]);
 	        console.log('The chosen source is '+sourceWithTheLeastWorkers);
         } else {
             // у крипа есть свой источник
-            var src = Game.getObjectById(creep.memory.boundSource);
+            var src = creep.GetBoundSourceObject();
             if (creep.harvest(src) == ERR_NOT_IN_RANGE) {
                 creep.moveTo(src, {visualizePathStyle: {stroke: '#ffaa00'}});
             }

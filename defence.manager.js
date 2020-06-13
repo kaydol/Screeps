@@ -3,7 +3,6 @@
 module.exports = {
     
     EngageTowers: function() {
-
         for(var roomName in Game.rooms) {
             var hostiles = Game.rooms[roomName].find(FIND_HOSTILE_CREEPS);
             if (hostiles.length > 0) {
