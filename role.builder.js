@@ -26,7 +26,7 @@ module.exports = function(creep) {
                 }
             }
         } else {
-            var destination = creep.pos.findClosestByPath(creep.room.find(FIND_CONSTRUCTION_SITES, {filter: (structure) => {return structure.my}}));
+            var destination = creep.pos.findClosestByPath(creep.room.find(FIND_MY_CONSTRUCTION_SITES, {filter: (structure) => {return structure.my}}));
             if (destination)
                 creep.SetDestination(destination.id);
         }
