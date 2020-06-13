@@ -27,39 +27,40 @@ module.exports = function(creep) {
                 creep.say('😊 Full');
             }
         } else {
-            creep.say("Idle");
-            creep.moveTo(creep.pos.findClosestByPath(FIND_MY_SPAWNS, {ignoreCreeps: true}));
+            creep.Idle();
         }
     }
     else {
         if (!creep.GetBoundSource()) {
-            // назначаем крипу источник на котором он будет трудиться всю жизнь
+            // Назначаем крипу источник на котором он будет трудиться всю жизнь
             var currentRoom = creep.room;
-	        var sources = currentRoom.find(FIND_SOURCES);
+	        // Рассматриваем только источники с контейнерами поблизости
+	        var sources = _.filter(currentRoom.find(FIND_SOURCES), 
+	            (source) => source.pos.findInRange(FIND_STRUCTURES, 3, {
+                    filter: { structureType: STRUCTURE_CONTAINER }
+                }).length
+            );
+	        
 	        var dictionary = new Map(sources.map(src => [src.id, 0]));
 	        
-	        // смотрим по сколько крипов забиндено на каждый кристалл 
+	        // Смотрим по сколько крипов забиндено на каждый источник
             for (var name in Memory.creeps) {
                 if (Game.creeps[name]) {
                     var src = Game.creeps[name].GetBoundSource();
-                    if (src) {
-                        if (dictionary.has(src)) { 
-                            dictionary.set(src, dictionary.get(src) + 1);
-                        } else {
-                            dictionary.set(src, 1);
-                        }
+                    if (src && dictionary.has(src)) {
+                        dictionary.set(src, dictionary.get(src) + 1);
                     }
                 }
             }
             
             // TODO в случае, если > 1 источника с 0 рабочими, выбирать тот, который ближе
             
-	        // выбираем в качестве рабочего тот, на котором сейчас меньше всего рабочих
+	        // Выбираем в качестве рабочего источника тот, на котором сейчас меньше всего рабочих
 	        var sourceWithTheLeastWorkers = [...dictionary.entries()].reduce((a, e) => e[1] < a[1] ? e : a);
 	        creep.SetBoundSource(sourceWithTheLeastWorkers[0]);
 	        console.log('The chosen source is '+sourceWithTheLeastWorkers);
         } else {
-            // у крипа есть свой источник
+            // У крипа есть свой источник
             var src = creep.GetBoundSourceObject();
             if (creep.harvest(src) == ERR_NOT_IN_RANGE) {
                 creep.moveTo(src, {visualizePathStyle: {stroke: '#ffaa00'}});
