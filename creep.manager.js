@@ -13,9 +13,10 @@ ROLES = {
     MINEHEAD : {spawnPriority: 1, roleName: 'Minehead', parts: [WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,MOVE], amount: 2, condition: 
         Game.spawns['Spawn1'].room.controller.level >= 2 && 
         Game.spawns['Spawn1'].room.find(FIND_STRUCTURES, { filter: (i) => i.structureType == STRUCTURE_CONTAINER }).length},
-    BUILDER : {spawnPriority: 2, roleName: 'Builder', parts: [WORK,CARRY,CARRY,MOVE,MOVE], amount: 4, condition: true},
-    COBBLER : {spawnPriority: 3, roleName: 'Cobbler', parts: [WORK,CARRY,CARRY,MOVE,MOVE], amount: 2, condition: true},
-    UPGRADER : {spawnPriority: 4, roleName: 'Upgrader', parts: [WORK,CARRY,CARRY,MOVE,MOVE], amount: 1, condition: true}
+    HAULER : {spawnPriority: 2, roleName: 'Hauler', parts: [CARRY,MOVE,MOVE,MOVE,MOVE,MOVE], amount: 1, condition: true},
+    BUILDER : {spawnPriority: 3, roleName: 'Builder', parts: [WORK,CARRY,CARRY,MOVE,MOVE], amount: 4, condition: true},
+    COBBLER : {spawnPriority: 4, roleName: 'Cobbler', parts: [WORK,CARRY,CARRY,MOVE,MOVE], amount: 2, condition: true},
+    UPGRADER : {spawnPriority: 5, roleName: 'Upgrader', parts: [WORK,CARRY,CARRY,MOVE,MOVE], amount: 1, condition: true}
 };
 
 

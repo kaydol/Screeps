@@ -1,11 +1,13 @@
 var creepManager = require('creep.manager');
 var defenceManager = require ('defence.manager');
+var structureManager = require('structure.manager');
 
 var roleHarvester = require('role.harvester');
 var roleMineHead = require('role.minehead');
 var roleUpgrader = require('role.upgrader');
 var roleBuilder = require('role.builder');
 var roleCobbler = require('role.cobbler');
+var roleHauler = require('role.hauler');
 
 // Здесь определяется какое поведение выполнять на крипах с соответствующей ролью
 var runners = [
@@ -13,7 +15,8 @@ var runners = [
     {name: creepManager.Roles.MINEHEAD.roleName, runner: roleMineHead},
     {name: creepManager.Roles.UPGRADER.roleName, runner: roleUpgrader},
     {name: creepManager.Roles.BUILDER.roleName, runner: roleBuilder},
-    {name: creepManager.Roles.COBBLER.roleName, runner: roleCobbler}
+    {name: creepManager.Roles.COBBLER.roleName, runner: roleCobbler},
+    {name: creepManager.Roles.HAULER.roleName, runner: roleHauler}
 ];
 var dictionary = runners.reduce((r, o) => Object.assign(r, { [o.name]: o }), {})
 
@@ -25,8 +28,12 @@ module.exports.loop = function () {
     
     defenceManager.EngageTowers();
     
+    structureManager.BuildStructures();
+    
     for(var name in Game.creeps) {
         var creep = Game.creeps[name];
-        dictionary[creep.GetRole()].runner(creep);
+        if (dictionary[creep.GetRole()].runner) {
+            dictionary[creep.GetRole()].runner(creep);
+        }
     }
 }

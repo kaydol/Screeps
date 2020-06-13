@@ -6,6 +6,9 @@ var creepManager = require('creep.manager');
 
 module.exports = function() {
     
+    Creep.prototype.GetDestinationObject = function() {
+        return Game.getObjectById(this.memory.destination);
+    },
     Creep.prototype.GetDestination = function() {
         return this.memory.destination;
     },
@@ -14,13 +17,12 @@ module.exports = function() {
     },
     Creep.prototype.TryReachDestination = function() {
         var creep = this;
-        var destination = Game.getObjectById(creep.GetDestination());
+        var destination = creep.GetDestinationObject();
         if (destination) {
             if (!creep.pos.isNearTo(destination)) {
                 creep.moveTo(destination, {visualizePathStyle: {stroke: '#ffaa00'}});
                 return false;
             } else {
-                //delete creep.memory.destination;
                 return destination.id;
             }
         } else {
@@ -46,7 +48,7 @@ module.exports = function() {
         
         // Определяем куда ехать за ресурсами
         // Определяем 1 раз, после приезда на место стоим и пытаемся заполнится
-        var destination = Game.getObjectById(creep.GetDestination());
+        var destination = creep.GetDestinationObject();
     
         if (destination) {
             if (!creep.pos.isNearTo(destination)) {
@@ -98,13 +100,15 @@ module.exports = function() {
             if (containersWithEnergy.length) {
                 // Если нашли контейнер, едем к нему
                 var closest = creep.pos.findClosestByPath(containersWithEnergy);
-                creep.memory.destination = closest.id;
-            } 
+                creep.SetDestination(closest.id); 
+            } else {
+                creep.Idle();
+            }
         } else {
              // Если в комнате нет контейнеров или шахтеров, которые их наполняют, едем к ближайщему источнику
             var closest = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
             if (closest) {
-                creep.memory.destination = closest.id; 
+                creep.SetDestination(closest.id); 
             } else {
                 // Путь заблокирован крипами
             }
@@ -115,7 +119,8 @@ module.exports = function() {
     Creep.prototype.Idle = function() {
         var creep = this;
         creep.say('Idle');
-        creep.moveTo(creep.pos.findClosestByPath(FIND_MY_SPAWNS, {ignoreCreeps: true}));
+        if (creep.getActiveBodyparts(MOVE) > 0)
+            creep.moveTo(creep.pos.findClosestByPath(FIND_MY_SPAWNS, {ignoreCreeps: true}));
     },
     
     
@@ -142,6 +147,6 @@ module.exports = function() {
         var obj = this.GetBoundSourceObject();
         if (!obj) 
             return false;
-        return this.pos.inRangeTo(obj.pos, 3);
+        return this.pos.inRangeTo(obj.pos, 1);
     }
 };
