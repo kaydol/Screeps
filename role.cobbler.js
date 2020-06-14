@@ -19,15 +19,37 @@ module.exports = function(creep) {
         {
             var destination = creep.TryReachDestination();
             if (destination) {
-                var construction = Game.getObjectById(destination);
-                var errorCode = creep.repair(construction);
-                //creep.say(construction.structureType);
-                if (construction.hits >= construction.hitsMax)
+                var construction = creep.GetDestinationObject();
+                var errorCode;
+                if (construction) {
+                    if (construction.structureType == STRUCTURE_TOWER)
+                        errorCode = creep.transfer(construction, RESOURCE_ENERGY);
+                    else {
+                        errorCode = creep.repair(construction);
+                        if (construction.hits >= construction.hitsMax)
+                            creep.ClearDestination();
+                    }
+                } else
                     creep.ClearDestination();
             }
         }
         else 
         {
+            // Если в комнате есть башни, переключаемся в режим снабжения башни энергией
+            var towersInTheRoom = creep.room.find(FIND_MY_STRUCTURES, {
+                filter: (structure) => {
+                    return structure.structureType == STRUCTURE_TOWER && structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
+                }
+            });
+            
+            if (towersInTheRoom.length) {
+                // Едем вливать энергию в самую пустую башню
+                towersInTheRoom.sort((a,b) => a.getFreeCapacity(RESOURCE_ENERGY) - b.getFreeCapacity(RESOURCE_ENERGY))
+                creep.SetDestination(towersInTheRoom[towersInTheRoom.length-1].id);
+                return;
+            }
+            
+            // Если башни в комнате нет, то выбираем самую битую постройку и едем ее чинить
             var targets = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
                     return structure.hits < structure.hitsMax;
