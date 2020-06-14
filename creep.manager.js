@@ -9,16 +9,20 @@
 */
 
 ROLES = {
-    HARVESTER : {spawnPriority: 0, roleName: 'Harvester', parts: [WORK,CARRY,CARRY,MOVE,MOVE], amount: 4, condition: true}, 
-    MINEHEAD : {spawnPriority: 1, roleName: 'Minehead', parts: [WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,MOVE], amount: 2, condition: 
+    HARVESTER : {spawnPriority: 0, roleName: 'Harvester', parts: [WORK,CARRY,CARRY,MOVE,MOVE], amount: 3, condition: true}, 
+    HAULER : {spawnPriority: 1, roleName: 'Hauler', parts: [CARRY,MOVE,MOVE,MOVE,MOVE,MOVE], amount: 1, condition: 
+        Game.spawns['Spawn1'].room.find(FIND_STRUCTURES, { filter: (i) => i.structureType == STRUCTURE_CONTAINER }).length},
+    MINEHEAD : {spawnPriority: 2, roleName: 'Minehead', parts: [WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,MOVE], amount: 3, condition: 
         Game.spawns['Spawn1'].room.controller.level >= 2 && 
         Game.spawns['Spawn1'].room.find(FIND_STRUCTURES, { filter: (i) => i.structureType == STRUCTURE_CONTAINER }).length},
-    HAULER : {spawnPriority: 2, roleName: 'Hauler', parts: [CARRY,MOVE,MOVE,MOVE,MOVE,MOVE], amount: 1, condition: true},
-    BUILDER : {spawnPriority: 3, roleName: 'Builder', parts: [WORK,CARRY,CARRY,MOVE,MOVE], amount: 4, condition: true},
+    BUILDER : {spawnPriority: 3, roleName: 'Builder', parts: [WORK,CARRY,CARRY,MOVE,MOVE], amount: 6, condition: true},
     COBBLER : {spawnPriority: 4, roleName: 'Cobbler', parts: [WORK,CARRY,CARRY,MOVE,MOVE], amount: 2, condition: true},
-    UPGRADER : {spawnPriority: 5, roleName: 'Upgrader', parts: [WORK,CARRY,CARRY,MOVE,MOVE], amount: 1, condition: true},
-    LONG_DISTANCE_MINER : {spawnPriority: 6, roleName: 'LongDistanceMiner', parts: [WORK,WORK,CARRY,CARRY,MOVE,MOVE], amount: 3, condition: 
+    UPGRADER : {spawnPriority: 5, roleName: 'Upgrader', parts: [WORK,CARRY,CARRY,MOVE,MOVE], amount: 4, condition: true},
+    LONG_DISTANCE_MINER : {spawnPriority: 6, roleName: 'LongDistanceMiner', parts: [WORK,WORK,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE], amount: 4, condition: 
         Game.spawns['Spawn1'].room.find(FIND_STRUCTURES, { filter: (i) => i.structureType == STRUCTURE_CONTAINER || i.structureType == STRUCTURE_STORAGE }).length &&
+        _.filter(Game.flags, (flag) => flag.color == COLOR_YELLOW).length 
+    },
+    CLAIMER : {spawnPriority: 7, roleName: 'Claimer', parts: [CLAIM,MOVE], amount: 0, condition: 
         _.filter(Game.flags, (flag) => flag.color == COLOR_YELLOW).length 
     }
 };
@@ -61,16 +65,19 @@ module.exports = {
     },
     
     SpawnUnitsIfNeeded: function() {
+        
+        var spawn = Game.spawns['Spawn1'];
+        
         // Добавляем нехватающих крипов на основе их spawnPriority
         for(var role of _.sortBy(Object.values(ROLES),'spawnPriority')) {
             var roleMembers = _.filter(Game.creeps, (creep) => creep.GetRole() == role.roleName);
             // TODO добавить проверку "максимальное кол-ва доступной энергии <= затраты на постройку юнита"
             if(roleMembers.length < role.amount && role.condition) {
                 var newName = role.roleName + Game.time;
-                var errorCode = Game.spawns['Spawn1'].spawnCreep(role.parts, newName, { dryRun: true });
+                var errorCode = spawn.spawnCreep(role.parts, newName, { dryRun: true });
                 if (errorCode == OK) {
                     console.log('Spawning new creep: ' + newName);
-                    Game.spawns['Spawn1'].spawnCreep(role.parts, newName, { memory: {role: role.roleName}});
+                    spawn.spawnCreep(role.parts, newName, { memory: {role: role.roleName, spawner: spawn.name}});
                     return; // очень важный return, чтобы spawnCreep не перезаписывался последующими итерациями в цикле (выходим, чтобы последующих итераций просто не было)
                 }
                 if (errorCode == ERR_NOT_ENOUGH_ENERGY) {

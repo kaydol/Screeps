@@ -9,6 +9,7 @@ var roleBuilder = require('role.builder');
 var roleCobbler = require('role.cobbler');
 var roleHauler = require('role.hauler');
 var roleLongDistanceMiner = require('role.longDistanceMiner');
+var roleClaimer = require('role.claimer');
 
 // Здесь определяется какое поведение выполнять на крипах с соответствующей ролью
 var runners = [
@@ -18,7 +19,8 @@ var runners = [
     {name: creepManager.Roles.BUILDER.roleName, runner: roleBuilder},
     {name: creepManager.Roles.COBBLER.roleName, runner: roleCobbler},
     {name: creepManager.Roles.HAULER.roleName, runner: roleHauler},
-    {name: creepManager.Roles.LONG_DISTANCE_MINER.roleName, runner: roleLongDistanceMiner}
+    {name: creepManager.Roles.LONG_DISTANCE_MINER.roleName, runner: roleLongDistanceMiner},
+    {name: creepManager.Roles.CLAIMER.roleName, runner: roleClaimer}
 ];
 var dictionary = runners.reduce((r, o) => Object.assign(r, { [o.name]: o }), {})
 
