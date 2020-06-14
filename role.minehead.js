@@ -4,21 +4,15 @@ module.exports = function(creep) {
         creep.memory.harvesting = true;
         creep.say('⛏ harvest');
     }
-    if (creep.memory.harvesting && creep.store.getFreeCapacity() == 0) {
+    if (creep.memory.harvesting && creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
         creep.memory.harvesting = false;
         creep.say('📦 deliver');
     }
 
     if (!creep.memory.harvesting) {
         // Шахтер заполнит ближайший к нему контейнер, после чего прекратит работать
-        var targets = creep.room.find(FIND_STRUCTURES, {
-            filter: (structure) => {
-                return (structure.structureType == STRUCTURE_CONTAINER);
-            }
-        });
-        // TODO заполнять блиайший незаполненный контейнер
-        if (targets.length > 0) {
-            var closest = creep.pos.findClosestByPath(targets, {ignoreCreeps: true})
+        var closest = creep.FindClosestStorage(creep.room, [STRUCTURE_CONTAINER]);
+        if (closest) {
             // Чиним контейнер
             if (closest.hits < closest.hitsMax) {
                 creep.repair(closest);

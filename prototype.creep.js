@@ -153,7 +153,7 @@ module.exports = function() {
         var obj = this.GetBoundSourceObject();
         if (!obj) 
             return false;
-        return this.pos.inRangeTo(obj.pos, 1);
+        return this.pos.inRangeTo(obj.pos, 2);
     },
     
     Creep.prototype.IsDying = function() {
@@ -172,14 +172,14 @@ module.exports = function() {
             }
         }
     },
-    Creep.prototype.FindClosestStorage = function(room) {
+    Creep.prototype.FindClosestStorage = function(room, structureTypes=[STRUCTURE_EXTENSION, STRUCTURE_SPAWN, STRUCTURE_TOWER, STRUCTURE_CONTAINER, STRUCTURE_STORAGE]) {
         var creep = this;
         if (!room) 
             room = creep.room;
         var targets = room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
-                    return ((structure.my && (structure.structureType == STRUCTURE_EXTENSION || structure.structureType == STRUCTURE_SPAWN || structure.structureType == STRUCTURE_TOWER))
-                        || (structure.structureType == STRUCTURE_CONTAINER || structure.structureType == STRUCTURE_STORAGE)) &&
+                    return ((structure.my && (structureTypes.includes(structure.structureType))) || 
+                        ((structure.structureType == STRUCTURE_CONTAINER || structure.structureType == STRUCTURE_STORAGE) && structureTypes.includes(structure.structureType))) &&
                         structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
                 }
             });

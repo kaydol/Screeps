@@ -14,29 +14,31 @@ module.exports = function(creep) {
         creep.ClearDestination();
         creep.say('⛏ harvest');
     }
-    if (creep.memory.harvesting && creep.store.getFreeCapacity() == 0) {
+    if (creep.memory.harvesting && creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
         creep.memory.harvesting = false;
         creep.ClearDestination();
         creep.say('📦 deliver');
     }
     
     if(!creep.memory.harvesting) {
-        var targets = creep.room.find(FIND_MY_STRUCTURES, {
-            filter: (structure) => {
-                return structure.my &&
-                    (structure.structureType == STRUCTURE_EXTENSION || structure.structureType == STRUCTURE_SPAWN || structure.structureType == STRUCTURE_TOWER) &&
-                    structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
-            }
-        });
-        if(targets.length > 0) {
-            // Едем вливать энергию в ближайшую постройку
-            var closest = creep.pos.findClosestByPath(targets, {ignoreCreeps: true});
-            if(creep.transfer(closest, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+        // Едем вливать энергию в ближайшую постройку
+        var closest = creep.FindClosestStorage(creep.room, [STRUCTURE_EXTENSION, STRUCTURE_SPAWN]);
+        if (closest) {
+            if(creep.transfer(closest, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE)
                 creep.moveTo(closest, {visualizePathStyle: {stroke: '#ffffff'}});
+        }
+        else {
+            // Если нет никаких других подходящих целей для влива энергии, пытаемся вливать в башню
+            var closest = creep.FindClosestStorage(creep.room, [STRUCTURE_TOWER]);
+            if (closest) {
+                if(creep.transfer(closest, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE)
+                    creep.moveTo(closest, {visualizePathStyle: {stroke: '#ffffff'}});
             }
-        } else {
-            // Все пристройки и важные здания заполнены энергией
-            creep.Idle();
+            else {
+                // Все пристройки и важные здания заполнены энергией
+                creep.Idle();
+            }
+            
         }
     }
     else {

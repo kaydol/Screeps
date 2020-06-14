@@ -27,7 +27,9 @@ module.exports = {
                     var i = targets.length; while (i--) hitPointsToRepair += targets[i].hitsMax - targets[i].hits;
                     // Возле башни рисуем количество HP, которые нужно отремонтировать в комнате
                     towers.forEach(tower => {
-                        tower.repair(targets[0]);
+                        // Чиним только если в башне больше половины энергии
+                        if (tower.store.getFreeCapacity(RESOURCE_ENERGY) < tower.store.getCapacity(RESOURCE_ENERGY) / 2.0)
+                            tower.repair(targets[0]);
                         tower.room.visual.text(
                             hitPointsToRepair,
                             tower.pos.x + 1, 
