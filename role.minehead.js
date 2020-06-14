@@ -19,6 +19,12 @@ module.exports = function(creep) {
         // TODO заполнять блиайший незаполненный контейнер
         if (targets.length > 0) {
             var closest = creep.pos.findClosestByPath(targets, {ignoreCreeps: true})
+            // Чиним контейнер
+            if (closest.hits < closest.hitsMax) {
+                creep.repair(closest);
+                creep.say('Fixing');
+                return;
+            }
             var errorCode = creep.transfer(closest, RESOURCE_ENERGY);
             if (errorCode == ERR_NOT_IN_RANGE) {
                 creep.moveTo(closest, {visualizePathStyle: {stroke: '#ffffff'}});
