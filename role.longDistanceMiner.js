@@ -5,6 +5,13 @@ module.exports = function(creep) {
         creep.memory.harvesting = true;
         creep.ClearDestination();
         creep.say('⛏ harvest');
+        
+        if (creep.memory.delivered == null) {
+            creep.memory.delivered = 0;
+        } else {
+            creep.memory.delivered = creep.memory.delivered + creep.store.getCapacity();
+            console.log('Long Distance Miner delivered ' + creep.memory.delivered + ' energy total');
+        };
     }
     if (creep.memory.harvesting && creep.store.getFreeCapacity() == 0) {
         creep.memory.harvesting = false;
@@ -12,7 +19,7 @@ module.exports = function(creep) {
         creep.say('📦 deliver');
     }
     
-    var homeRoom = Game.spawns['Spawn1'].room;
+    var homeRoom = creep.GetSpawnerObject().room;
     
     var longDistanceMiningFlags = _.filter(Game.flags, (flag) => flag.color == COLOR_YELLOW);
     if (longDistanceMiningFlags.length) {
@@ -20,31 +27,23 @@ module.exports = function(creep) {
         var flag = longDistanceMiningFlags[0];
         
         if(!creep.memory.harvesting) {
-            var targets = homeRoom.find(FIND_STRUCTURES, { // TODO комната в которую везем ресурсы захардкожена, убрать хардкод
-                filter: (structure) => {
-                    return ((structure.my && (structure.structureType == STRUCTURE_EXTENSION || structure.structureType == STRUCTURE_SPAWN || structure.structureType == STRUCTURE_TOWER))
-                        || (structure.structureType == STRUCTURE_CONTAINER || structure.structureType == STRUCTURE_STORAGE)) &&
-                        structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
-                }
-            });
-            if(targets.length > 0) {
-                // Если мы не в той комнате, едем обратно в свою комнату
-                if (creep.room != homeRoom) {
-                    creep.moveTo(targets[0].pos); // Здесь не важен индекс массива, 
+            if (creep.room != homeRoom) {
+                creep.moveTo(homeRoom.controller.pos);
+            } else {
+                // Доехали, теперь едем вливать энергию в ближайшую постройку
+                var closestStorage = creep.FindClosestStorage(homeRoom);
+                if (closestStorage && creep.transfer(closestStorage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(closestStorage, {visualizePathStyle: {stroke: '#ffffff'}});
                 }
                 else {
-                    // Едем вливать энергию в ближайшую постройку
-                    var closest = creep.pos.findClosestByPath(targets, {ignoreCreeps: true});
-                    if(creep.transfer(closest, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(closest, {visualizePathStyle: {stroke: '#ffffff'}});
-                    }
+                    // Все пристройки и важные здания заполнены энергией
+                    creep.Idle();
                 }
-            } else {
-                // Все пристройки и важные здания заполнены энергией
-                creep.Idle();
             }
+            
         }
         else {
+            // Едем в комнату с флагом
             if (!Game.rooms[flag.pos.roomName] || creep.room != Game.rooms[flag.pos.roomName]) {
                 creep.moveTo(flag.pos);
             } else
