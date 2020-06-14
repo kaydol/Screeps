@@ -26,7 +26,16 @@ module.exports = function(creep) {
                 }
             }
         } else {
-            var destination = creep.pos.findClosestByPath(creep.room.find(FIND_MY_CONSTRUCTION_SITES, {filter: (structure) => {return structure.my}}));
+            // Дороги строим в последнюю очередь
+            var constructionSites = creep.room.find(FIND_MY_CONSTRUCTION_SITES, {filter: (structure) => {return structure.my}});
+            var notRoads = _.filter(constructionSites, (construction) => construction.structureType != STRUCTURE_ROAD);
+            
+            var destination;
+            if (notRoads.length) 
+                destination = creep.pos.findClosestByPath(notRoads);
+            else
+                destination = creep.pos.findClosestByPath(constructionSites);
+            
             if (destination)
                 creep.SetDestination(destination.id);
         }
