@@ -3,6 +3,11 @@ require('prototype.creep')();
 
 /** @param {Creep} creep **/
 module.exports = function(creep) {
+    
+    if (creep.IsDying()) {
+        creep.PrepareToDie();
+        return;
+    }
 
     if (!creep.memory.harvesting && creep.store[RESOURCE_ENERGY] == 0) {
         creep.memory.harvesting = true;

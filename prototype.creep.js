@@ -154,5 +154,42 @@ module.exports = function() {
         if (!obj) 
             return false;
         return this.pos.inRangeTo(obj.pos, 1);
+    },
+    
+    Creep.prototype.IsDying = function() {
+        var creep = this;
+        return creep.ticksToLive < 50;
+    },
+    Creep.prototype.PrepareToDie = function() {
+        var creep = this;
+        if (creep.store[RESOURCE_ENERGY] > 0) {
+            var closest = creep.FindClosestStorage();
+            if (closest) {
+                if (creep.transfer(closest, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(closest);
+                    creep.say('✝');
+                };
+            }
+        }
+    },
+    Creep.prototype.FindClosestStorage = function(room) {
+        var creep = this;
+        if (!room) 
+            room = creep.room;
+        var targets = room.find(FIND_STRUCTURES, {
+                filter: (structure) => {
+                    return ((structure.my && (structure.structureType == STRUCTURE_EXTENSION || structure.structureType == STRUCTURE_SPAWN || structure.structureType == STRUCTURE_TOWER))
+                        || (structure.structureType == STRUCTURE_CONTAINER || structure.structureType == STRUCTURE_STORAGE)) &&
+                        structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
+                }
+            });
+        return creep.pos.findClosestByPath(targets);
+    },
+    
+    Creep.prototype.GetSpawnerName = function() {
+        return this.memory.spawner;
+    },
+    Creep.prototype.GetSpawnerObject = function() {
+        return Game.spawns[this.memory.spawner];
     }
 };
