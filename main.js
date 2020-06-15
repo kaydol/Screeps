@@ -1,3 +1,6 @@
+const profiler = require('screeps-profiler');
+profiler.enable();
+
 const creepManager = require('creep.manager');
 const defenceManager = require ('defence.manager');
 const structureManager = require('structure.manager');
@@ -25,19 +28,20 @@ const runners = [
 const dictionary = runners.reduce((r, o) => Object.assign(r, { [o.name]: o }), {})
 
 module.exports.loop = function () {
-    
-    creepManager.VisualizeSpawningUnits();
-    creepManager.ClearDeadCreepsMemory();
-    creepManager.SpawnUnitsIfNeeded();
-    
-    defenceManager.EngageTowers();
-    
-    structureManager.BuildStructures();
-    
-    for(let name in Game.creeps) {
-        const creep = Game.creeps[name];
-        if (dictionary[creep.GetRole()].runner) {
-            dictionary[creep.GetRole()].runner(creep);
+    profiler.wrap(function() {
+        creepManager.VisualizeSpawningUnits();
+        creepManager.ClearDeadCreepsMemory();
+        creepManager.SpawnUnitsIfNeeded();
+        
+        defenceManager.EngageTowers();
+        
+        structureManager.BuildStructures();
+        
+        for(let name in Game.creeps) {
+            const creep = Game.creeps[name];
+            if (dictionary[creep.GetRole()].runner) {
+                dictionary[creep.GetRole()].runner(creep);
+            }
         }
-    }
+    });
 }
