@@ -11,7 +11,7 @@ module.exports = function(creep) {
 
     if (!creep.memory.harvesting) {
         // Шахтер заполнит ближайший к нему контейнер, после чего прекратит работать
-        const closest = creep.FindClosestStorage(creep.room, [STRUCTURE_CONTAINER]);
+        const closest = creep.FindClosestStorage(creep.room, [STRUCTURE_CONTAINER], canBeFull=true);
         if (closest) {
             // Чиним контейнер
             if (closest.hits < closest.hitsMax) {

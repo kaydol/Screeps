@@ -172,7 +172,7 @@ module.exports = function() {
             }
         }
     },
-    Creep.prototype.FindClosestStorage = function(room, structureTypes=[STRUCTURE_EXTENSION, STRUCTURE_SPAWN, STRUCTURE_TOWER, STRUCTURE_CONTAINER, STRUCTURE_STORAGE]) {
+    Creep.prototype.FindClosestStorage = function(room, structureTypes=[STRUCTURE_EXTENSION, STRUCTURE_SPAWN, STRUCTURE_TOWER, STRUCTURE_CONTAINER, STRUCTURE_STORAGE], canBeFull=false) {
         const creep = this;
         if (!room) 
             room = creep.room;
@@ -180,7 +180,7 @@ module.exports = function() {
                 filter: (structure) => {
                     return ((structure.my && (structureTypes.includes(structure.structureType))) || 
                         ((structure.structureType == STRUCTURE_CONTAINER || structure.structureType == STRUCTURE_STORAGE) && structureTypes.includes(structure.structureType))) &&
-                        structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
+                        (canBeFull || structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0);
                 }
             });
         return creep.pos.findClosestByPath(targets);
