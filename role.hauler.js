@@ -1,16 +1,16 @@
-var creepManager = require('creep.manager');
+let creepManager = require('creep.manager');
 require('prototype.creep')();
 
 module.exports = function(creep) {
     
-    var mineheads = _.filter(Game.creeps, (c) => c.GetRole() == creepManager.Roles.MINEHEAD.roleName && !c.IsNearBoundSource());
+    const mineheads = _.filter(Game.creeps, (c) => c.GetRole() == creepManager.Roles.MINEHEAD.roleName && !c.IsNearBoundSource());
     if (mineheads.length) {
         creep.say('Hauling');
-        var closest = creep.pos.findClosestByPath(mineheads, {ignoreCreeps: true});
+        const closest = creep.pos.findClosestByPath(mineheads, {ignoreCreeps: true});
         // Доехали до крипа, которого будем толкать
         if (creep.pos.isNearTo(closest)) 
         {
-            var path = creep.pos.findPathTo(closest.GetBoundSourceObject());
+            const path = creep.pos.findPathTo(closest.GetBoundSourceObject());
             if (path.length > 1) {
                 // Едем
                 creep.moveByPath(path);

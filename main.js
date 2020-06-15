@@ -1,18 +1,18 @@
-var creepManager = require('creep.manager');
-var defenceManager = require ('defence.manager');
-var structureManager = require('structure.manager');
+const creepManager = require('creep.manager');
+const defenceManager = require ('defence.manager');
+const structureManager = require('structure.manager');
 
-var roleHarvester = require('role.harvester');
-var roleMineHead = require('role.minehead');
-var roleUpgrader = require('role.upgrader');
-var roleBuilder = require('role.builder');
-var roleCobbler = require('role.cobbler');
-var roleHauler = require('role.hauler');
-var roleLongDistanceMiner = require('role.longDistanceMiner');
-var roleClaimer = require('role.claimer');
+const roleHarvester = require('role.harvester');
+const roleMineHead = require('role.minehead');
+const roleUpgrader = require('role.upgrader');
+const roleBuilder = require('role.builder');
+const roleCobbler = require('role.cobbler');
+const roleHauler = require('role.hauler');
+const roleLongDistanceMiner = require('role.longDistanceMiner');
+const roleClaimer = require('role.claimer');
 
 // Здесь определяется какое поведение выполнять на крипах с соответствующей ролью
-var runners = [
+const runners = [
     {name: creepManager.Roles.HARVESTER.roleName, runner: roleHarvester},
     {name: creepManager.Roles.MINEHEAD.roleName, runner: roleMineHead},
     {name: creepManager.Roles.UPGRADER.roleName, runner: roleUpgrader},
@@ -22,7 +22,7 @@ var runners = [
     {name: creepManager.Roles.LONG_DISTANCE_MINER.roleName, runner: roleLongDistanceMiner},
     {name: creepManager.Roles.CLAIMER.roleName, runner: roleClaimer}
 ];
-var dictionary = runners.reduce((r, o) => Object.assign(r, { [o.name]: o }), {})
+const dictionary = runners.reduce((r, o) => Object.assign(r, { [o.name]: o }), {})
 
 module.exports.loop = function () {
     
@@ -34,8 +34,8 @@ module.exports.loop = function () {
     
     structureManager.BuildStructures();
     
-    for(var name in Game.creeps) {
-        var creep = Game.creeps[name];
+    for(let name in Game.creeps) {
+        const creep = Game.creeps[name];
         if (dictionary[creep.GetRole()].runner) {
             dictionary[creep.GetRole()].runner(creep);
         }

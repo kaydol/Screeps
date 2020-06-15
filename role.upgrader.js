@@ -1,4 +1,4 @@
-var creepManager = require('creep.manager');
+let creepManager = require('creep.manager');
 require('prototype.creep')();
 
 module.exports = function(creep) {
@@ -8,7 +8,7 @@ module.exports = function(creep) {
         creep.ClearDestination();
         creep.say('🔄 harvest');
     }
-    if (!creep.memory.upgrading && creep.store.getFreeCapacity() == 0) {
+    if (!creep.memory.upgrading && creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
         creep.memory.upgrading = true;
         creep.ClearDestination();
         creep.say('⚡ upgrade');

@@ -1,4 +1,4 @@
-var creepManager = require('creep.manager');
+let creepManager = require('creep.manager');
 require('prototype.creep')();
 
 module.exports = function(creep) {
@@ -8,7 +8,7 @@ module.exports = function(creep) {
         creep.ClearDestination();
         creep.say('🔄 harvest');
     }
-    if (!creep.memory.repairing && creep.store.getFreeCapacity() == 0) {
+    if (!creep.memory.repairing && creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
         creep.memory.repairing = true;
         creep.ClearDestination();
         creep.say('🔨 repair');
@@ -17,10 +17,10 @@ module.exports = function(creep) {
     if (creep.memory.repairing) {
         if (creep.GetDestination()) 
         {
-            var destination = creep.TryReachDestination();
+            const destination = creep.TryReachDestination();
             if (destination) {
-                var construction = creep.GetDestinationObject();
-                var errorCode;
+                const construction = creep.GetDestinationObject();
+                let errorCode;
                 if (construction) {
                     if (construction.structureType == STRUCTURE_TOWER)
                         errorCode = creep.transfer(construction, RESOURCE_ENERGY);
@@ -36,7 +36,7 @@ module.exports = function(creep) {
         else 
         {
             // Если в комнате есть башни, переключаемся в режим снабжения башни энергией
-            var towersInTheRoom = creep.room.find(FIND_MY_STRUCTURES, {
+            const towersInTheRoom = creep.room.find(FIND_MY_STRUCTURES, {
                 filter: (structure) => {
                     return structure.structureType == STRUCTURE_TOWER && structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
                 }
@@ -50,13 +50,13 @@ module.exports = function(creep) {
             }
             
             // Если башни в комнате нет, то выбираем самую битую постройку и едем ее чинить
-            var targets = creep.room.find(FIND_STRUCTURES, {
+            const targets = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
                     return structure.hits < structure.hitsMax;
                 }
             });
             
-            if (targets) {
+            if (targets.length) {
                 targets.sort((a,b) => a.hits - b.hits);
                 creep.SetDestination(targets[0].id);
             } else {

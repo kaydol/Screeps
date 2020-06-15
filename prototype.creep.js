@@ -1,4 +1,4 @@
-var creepManager = require('creep.manager');
+let creepManager = require('creep.manager');
 
 /*
     В этом модуле находятся функции, которые расширяют класс Creep
@@ -16,8 +16,8 @@ module.exports = function() {
         this.memory.destination = destination;
     },
     Creep.prototype.TryReachDestination = function() {
-        var creep = this;
-        var destination = creep.GetDestinationObject();
+        const creep = this;
+        const destination = creep.GetDestinationObject();
         if (destination) {
             if (!creep.pos.isNearTo(destination)) {
                 creep.moveTo(destination, {visualizePathStyle: {stroke: '#ffaa00'}});
@@ -44,17 +44,17 @@ module.exports = function() {
     },
     
     Creep.prototype.FetchEnergy = function(roomWithEnergy) {
-        var creep = this;
+        const creep = this;
         if (!roomWithEnergy) 
             roomWithEnergy = creep.room;
         
         // Определяем куда ехать за ресурсами
         // Определяем 1 раз, после приезда на место стоим и пытаемся заполнится
-        var destination = creep.GetDestinationObject();
+        const destination = creep.GetDestinationObject();
     
         if (destination) {
             if (!creep.pos.isNearTo(destination)) {
-                var errorCode = creep.moveTo(destination, {visualizePathStyle: {stroke: '#ffaa00'}});
+                let errorCode = creep.moveTo(destination, {visualizePathStyle: {stroke: '#ffaa00'}});
                 if (errorCode == ERR_NO_PATH) {
                     creep.IncreaseMoveToFailures();
                 } else {
@@ -71,19 +71,19 @@ module.exports = function() {
         }
         
         // Пытаемся найти ближайший контейнер с ресурсами
-        var containers = roomWithEnergy.find(FIND_STRUCTURES, { filter: (i) => i.structureType == STRUCTURE_CONTAINER });
-        var containersWithEnergy = roomWithEnergy.find(FIND_STRUCTURES, { filter: (i) => i.structureType == STRUCTURE_CONTAINER && i.store[RESOURCE_ENERGY] > 0 });
+        const containers = roomWithEnergy.find(FIND_STRUCTURES, { filter: (i) => i.structureType == STRUCTURE_CONTAINER });
+        const containersWithEnergy = roomWithEnergy.find(FIND_STRUCTURES, { filter: (i) => i.structureType == STRUCTURE_CONTAINER && i.store[RESOURCE_ENERGY] > 0 });
         // Ищем только тех шахтеров, которые находятся возле своего назначенного источника энергии
-        var mineheads = _.filter(Game.creeps, (c) => c.GetRole() == creepManager.Roles.MINEHEAD.roleName && c.IsNearBoundSource());
+        const mineheads = _.filter(Game.creeps, (c) => c.GetRole() == creepManager.Roles.MINEHEAD.roleName && c.IsNearBoundSource());
         
         /*
-        var nearestSource = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
-        var nearestContainer = creep.pos.findClosestByPath(containersWithEnergy);
+        let nearestSource = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
+        let nearestContainer = creep.pos.findClosestByPath(containersWithEnergy);
         
-        var containerIsCloser = true;
+        let containerIsCloser = true;
         if (nearestContainer) {
-            var distToContainer = nearestContainer.pos.findPathTo(creep.pos).length;
-            var distToSource = nearestSource.pos.findPathTo(creep.pos).length;
+            let distToContainer = nearestContainer.pos.findPathTo(creep.pos).length;
+            let distToSource = nearestSource.pos.findPathTo(creep.pos).length;
             containerIsCloser = distToContainer <= distToSource;
         }
         
@@ -101,7 +101,7 @@ module.exports = function() {
         if (containers.length && mineheads.length) {
             if (containersWithEnergy.length) {
                 // Если нашли контейнер, едем к нему
-                var closest = creep.pos.findClosestByPath(containersWithEnergy);
+                const closest = creep.pos.findClosestByPath(containersWithEnergy);
                 if (closest) {
                     creep.SetDestination(closest.id); 
                 } else {
@@ -112,7 +112,7 @@ module.exports = function() {
             }
         } else {
              // Если в комнате нет контейнеров или шахтеров, которые их наполняют, едем к ближайшему источнику
-            var closest = creep.pos.findClosestByPath(roomWithEnergy.find(FIND_SOURCES_ACTIVE));
+            const closest = creep.pos.findClosestByPath(roomWithEnergy.find(FIND_SOURCES_ACTIVE));
             if (closest) {
                 creep.SetDestination(closest.id); 
             } else {
@@ -123,7 +123,7 @@ module.exports = function() {
     
     
     Creep.prototype.Idle = function() {
-        var creep = this;
+        const creep = this;
         creep.say('Idle');
         if (creep.getActiveBodyparts(MOVE) > 0)
             creep.moveTo(creep.pos.findClosestByPath(FIND_MY_SPAWNS, {ignoreCreeps: true}));
@@ -150,20 +150,20 @@ module.exports = function() {
     Creep.prototype.IsNearBoundSource = function() {
         if (!this.GetBoundSource())
             return false;
-        var obj = this.GetBoundSourceObject();
+        const obj = this.GetBoundSourceObject();
         if (!obj) 
             return false;
         return this.pos.inRangeTo(obj.pos, 2);
     },
     
     Creep.prototype.IsDying = function() {
-        var creep = this;
+        const creep = this;
         return creep.ticksToLive < 50;
     },
     Creep.prototype.PrepareToDie = function() {
-        var creep = this;
+        const creep = this;
         if (creep.store[RESOURCE_ENERGY] > 0) {
-            var closest = creep.FindClosestStorage();
+            const closest = creep.FindClosestStorage();
             if (closest) {
                 if (creep.transfer(closest, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                     creep.moveTo(closest);
@@ -173,10 +173,10 @@ module.exports = function() {
         }
     },
     Creep.prototype.FindClosestStorage = function(room, structureTypes=[STRUCTURE_EXTENSION, STRUCTURE_SPAWN, STRUCTURE_TOWER, STRUCTURE_CONTAINER, STRUCTURE_STORAGE]) {
-        var creep = this;
+        const creep = this;
         if (!room) 
             room = creep.room;
-        var targets = room.find(FIND_STRUCTURES, {
+        const targets = room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
                     return ((structure.my && (structureTypes.includes(structure.structureType))) || 
                         ((structure.structureType == STRUCTURE_CONTAINER || structure.structureType == STRUCTURE_STORAGE) && structureTypes.includes(structure.structureType))) &&
