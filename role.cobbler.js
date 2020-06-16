@@ -1,4 +1,3 @@
-let creepManager = require('creep.manager');
 require('prototype.creep')();
 
 module.exports = function(creep) {
@@ -44,7 +43,7 @@ module.exports = function(creep) {
             
             if (towersInTheRoom.length) {
                 // Едем вливать энергию в самую пустую башню
-                towersInTheRoom.sort((a,b) => a.getFreeCapacity(RESOURCE_ENERGY) - b.getFreeCapacity(RESOURCE_ENERGY))
+                towersInTheRoom.sort((a,b) => a.store.getFreeCapacity(RESOURCE_ENERGY) - b.store.getFreeCapacity(RESOURCE_ENERGY))
                 creep.SetDestination(towersInTheRoom[towersInTheRoom.length-1].id);
                 return;
             }
