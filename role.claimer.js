@@ -14,7 +14,7 @@ module.exports = function(creep) {
         } 
         else {
             if (creep.room.controller) {
-                if (creep.pos.isNearTo(creep.room.controller))
+                if (!creep.pos.isNearTo(creep.room.controller))
                     creep.moveTo(creep.room.controller);
                 let errorCode = creep.claimController(creep.room.controller);
                 if (errorCode == ERR_GCL_NOT_ENOUGH) {
