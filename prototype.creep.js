@@ -1,4 +1,4 @@
-let creepManager = require('creep.manager');
+const defRoles = require('definitions.roles')();
 
 /*
     В этом модуле находятся функции, которые расширяют класс Creep
@@ -62,8 +62,9 @@ module.exports = function() {
                 }
                 return;
             } else {
+                // Если harvest возвращает ERR_NOT_OWNER значит комнату кто-то занял\зарезервировал и мы больше не можем в ней добывать 
                 if (creep.store.getFreeCapacity() > 0 && !(creep.withdraw(destination, RESOURCE_ENERGY) == OK || creep.harvest(destination) == OK)) {
-                    creep.say('🤔 '); // приехали за ресурсами, а их там нет. Едем в другое место
+                    creep.say('🤔'); // приехали за ресурсами, а их там нет. Едем в другое место
                 } else {
                     creep.ClearDestination();
                 }
@@ -74,7 +75,7 @@ module.exports = function() {
         const containers = roomWithEnergy.find(FIND_STRUCTURES, { filter: (i) => i.structureType == STRUCTURE_CONTAINER });
         const containersWithEnergy = roomWithEnergy.find(FIND_STRUCTURES, { filter: (i) => i.structureType == STRUCTURE_CONTAINER && i.store[RESOURCE_ENERGY] > 0 });
         // Ищем только тех шахтеров, которые находятся возле своего назначенного источника энергии
-        const mineheads = _.filter(Game.creeps, (c) => c.GetRole() == creepManager.Roles.MINEHEAD.roleName && c.IsNearBoundSource());
+        const mineheads = _.filter(Game.creeps, (c) => c.GetRole() == defRoles.MINEHEAD && c.IsNearBoundSource());
         
         /*
         let nearestSource = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);

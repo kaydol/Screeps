@@ -1,4 +1,3 @@
-let creepManager = require('creep.manager');
 require('prototype.creep')();
 
 module.exports = function(creep) {

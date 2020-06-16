@@ -1,4 +1,3 @@
-let creepManager = require('creep.manager');
 require('prototype.creep')();
 
 /** @param {Creep} creep **/
