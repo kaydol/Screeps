@@ -1,7 +1,11 @@
 require('prototype.creep')();
 
 module.exports = function(creep) {
-        
+    
+    //if (creep.RenewIfNeeded(300)) {
+    //    return;
+    //}
+    
     if (creep.memory.upgrading && creep.store[RESOURCE_ENERGY] == 0) {
         creep.memory.upgrading = false;
         creep.ClearDestination();

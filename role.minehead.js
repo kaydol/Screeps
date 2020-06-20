@@ -1,5 +1,11 @@
 module.exports = function(creep) {
-	    
+    
+	if (creep.RenewIfNeeded(300, true)) {
+        return;
+    }
+	
+	const PULL_THRESHOLD = 2;
+	
     if (!creep.memory.harvesting && creep.store[RESOURCE_ENERGY] == 0) {
         creep.memory.harvesting = true;
         creep.say('⛏ harvest');
@@ -13,16 +19,37 @@ module.exports = function(creep) {
         // Шахтер заполнит ближайший к нему контейнер, после чего прекратит работать
         const closest = creep.FindClosestStorage(creep.room, [STRUCTURE_CONTAINER], canBeFull=true);
         if (closest) {
+            let errorCode;
             // Чиним контейнер
             if (closest.hits < closest.hitsMax) {
-                creep.repair(closest);
+                errorCode = creep.repair(closest);
+            }
+            if (errorCode == OK) {
                 creep.say('Fixing');
+                creep.ClearPullTowards();
                 return;
             }
-            let errorCode = creep.transfer(closest, RESOURCE_ENERGY);
+            
+            // Если шахтер далеко от контейнера, просим его подтолкнуть
+            let distance = creep.pos.getRangeTo(closest);
+            
+            if (distance > PULL_THRESHOLD)
+                creep.SetPullTowards(closest);
+            else
+                creep.ClearPullTowards();
+            
             if (errorCode == ERR_NOT_IN_RANGE) {
                 creep.moveTo(closest, {visualizePathStyle: {stroke: '#ffffff'}});
+                return;
             }
+            
+            errorCode = creep.transfer(closest, RESOURCE_ENERGY);
+            
+            if (errorCode == ERR_NOT_IN_RANGE) {
+                creep.moveTo(closest, {visualizePathStyle: {stroke: '#ffffff'}});
+                return;
+            }
+            
             if (errorCode == ERR_FULL) {
                 creep.say('😊 Full');
             }
@@ -58,12 +85,29 @@ module.exports = function(creep) {
 	        // Выбираем в качестве рабочего источника тот, на котором сейчас меньше всего рабочих
 	        const sourceWithTheLeastWorkers = [...dictionary.entries()].reduce((a, e) => e[1] < a[1] ? e : a);
 	        creep.SetBoundSource(sourceWithTheLeastWorkers[0]);
+	        creep.SetPullTowards(sourceWithTheLeastWorkers[0]);
 	        console.log('The chosen source is '+sourceWithTheLeastWorkers);
+	        
+	        
         } else {
             // У крипа есть свой источник
             const src = creep.GetBoundSourceObject();
-            if (creep.harvest(src) == ERR_NOT_IN_RANGE) {
+            
+            // Если шахтер далеко от источника, просим его подтолкнуть
+            let distance = creep.pos.getRangeTo(src);
+            
+            if (distance > PULL_THRESHOLD)
+                creep.SetPullTowards(src.id);
+            else
+                creep.ClearPullTowards();
+                
+            let errorCode = creep.harvest(src);
+            
+            if (errorCode == ERR_NOT_IN_RANGE) {
                 creep.moveTo(src, {visualizePathStyle: {stroke: '#ffaa00'}});
+            }
+            if (errorCode == ERR_NOT_ENOUGH_RESOURCES) {
+                creep.say('🕒');
             }
         }
     }

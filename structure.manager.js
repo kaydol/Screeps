@@ -36,7 +36,17 @@ module.exports = {
                         // build ramps around controller
                         break;
                     case 3:
-                        
+                        // Строим рампу вокруг контроллера, чтобы вражеские крипы не могли прерывать апгрейд контроллера
+                        const radius = 1;
+                        const terrain = Game.map.getRoomTerrain(roomName);
+                        const pos = controller.pos;
+                        for(let dx = -radius; dx <= radius; dx++) {
+                            for(let dy = -radius; dy <= radius; dy++) {
+                                if (terrain.get(pos.x + dx, pos.y + dy) != TERRAIN_MASK_WALL) {
+                                    currentRoom.createConstructionSite(pos.x + dx, pos.y + dy, STRUCTURE_RAMPART);
+                                }
+                            }
+                        }
                         break;
                     case 4:
                         
@@ -58,17 +68,7 @@ module.exports = {
                         break;
                 }
                 
-                // Строим рампу вокруг контроллера, чтобы вражеские крипы не могли прерывать апгрейд контроллера
-                const radius = 1;
-                const terrain = Game.map.getRoomTerrain(roomName);
-                const pos = controller.pos;
-                for(let dx = -radius; dx <= radius; dx++) {
-                    for(let dy = -radius; dy <= radius; dy++) {
-                        if (terrain.get(pos.x + dx, pos.y + dy) != TERRAIN_MASK_WALL && (dx != 0 && dy != 0)) {
-                            currentRoom.createConstructionSite(pos.x + dx, pos.y + dy, STRUCTURE_RAMPART);
-                        }
-                    }
-                }
+                
             }
             
             

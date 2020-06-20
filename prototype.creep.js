@@ -48,6 +48,7 @@ module.exports = function() {
         if (!roomWithEnergy) 
             roomWithEnergy = creep.room;
         
+        
         // Определяем куда ехать за ресурсами
         // Определяем 1 раз, после приезда на место стоим и пытаемся заполнится
         const destination = creep.GetDestinationObject();
@@ -98,7 +99,6 @@ module.exports = function() {
             creep.SetDestination(nearestSource.id);
         }
         */
-        
         if (containers.length && mineheads.length) {
             if (containersWithEnergy.length) {
                 // Если нашли контейнер, едем к нему
@@ -112,7 +112,7 @@ module.exports = function() {
                 creep.Idle();
             }
         } else {
-             // Если в комнате нет контейнеров или шахтеров, которые их наполняют, едем к ближайшему источнику
+            // Если в комнате нет контейнеров или шахтеров, которые их наполняют, едем к ближайшему источнику
             const closest = creep.pos.findClosestByPath(roomWithEnergy.find(FIND_SOURCES_ACTIVE));
             if (closest) {
                 creep.SetDestination(closest.id); 
@@ -156,6 +156,20 @@ module.exports = function() {
             return false;
         return this.pos.inRangeTo(obj.pos, 2);
     },
+    Creep.prototype.SetPullTowards = function(destination) {
+        this.memory.pullTowards = destination;
+    },
+    Creep.prototype.GetPullTowards = function() {
+        return this.memory.pullTowards;
+    },
+    Creep.prototype.GetPullTowardsObject = function() {
+        return Game.getObjectById(this.memory.pullTowards);
+    },
+    Creep.prototype.ClearPullTowards = function() {
+        if (this.memory.pullTowards) 
+            delete this.memory.pullTowards;
+    },
+    
     
     Creep.prototype.IsDying = function() {
         const creep = this;
@@ -192,5 +206,39 @@ module.exports = function() {
     },
     Creep.prototype.GetSpawnerObject = function() {
         return Game.spawns[this.memory.spawner];
+    },
+    
+    // Возвращает true когда надо починиться, undefined когда не надо
+    Creep.prototype.RenewIfNeeded = function(ticksToLive=1500, requiresPulling=false) {
+        
+        const creep = this;
+        if (creep.ticksToLive <= ticksToLive) {
+    	    creep.memory.renewing = true;
+        }
+        
+        if (creep.memory.renewing) {
+            creep.say('♻');
+            let spawn = creep.GetSpawnerObject();
+            
+            if (!creep.pos.isNearTo(spawn, 1)) {
+                creep.moveTo(spawn);
+                if (requiresPulling) 
+                    creep.SetPullTowards(spawn.id);
+            } else {
+                if (requiresPulling)
+                    creep.ClearPullTowards();
+            }
+            let errorCode = spawn.renewCreep(creep); 
+            if (errorCode == ERR_FULL || errorCode == ERR_NOT_ENOUGH_ENERGY) {
+                delete creep.memory.renewing;
+                if (requiresPulling)
+                    creep.ClearPullTowards();
+            }
+        }
+        return creep.memory.renewing;
+    },
+    Creep.prototype.IsRenewing = function() {
+        return this.memory.renewing;
     }
+    
 };

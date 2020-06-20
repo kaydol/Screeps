@@ -2,10 +2,9 @@ require('prototype.creep')();
 
 module.exports = function(creep) {
     
-    if (creep.IsDying()) {
-        creep.PrepareToDie();
-        return;
-    }
+    //if (creep.RenewIfNeeded(300)) {
+    //    return;
+    //}
     
     if (creep.memory.building && creep.store[RESOURCE_ENERGY] == 0) {
         creep.memory.building = false;

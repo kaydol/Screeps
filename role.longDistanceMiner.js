@@ -1,3 +1,5 @@
+const roleBuilder = require('role.builder');
+const roleUpgrader = require('role.upgrader');
 
 module.exports = function(creep) {
     
@@ -27,6 +29,20 @@ module.exports = function(creep) {
         const flag = longDistanceMiningFlags[0];
         
         if(!creep.memory.harvesting) {
+            if (creep.room.controller.my) {
+                // Переключаемся в апгрейдера, если контроллер стал нашим
+                if (creep.room.controller.ticksToDowngrade < 2000) {
+                    roleUpgrader(creep);
+                }
+                // Переключаемся в строителя, если в комнате есть стройки
+                if (creep.room.find(FIND_MY_CONSTRUCTION_SITES).length) {
+                    roleBuilder(creep);
+                }
+                
+                return;
+            }
+            
+            
             if (creep.room != homeRoom) {
                 creep.moveTo(homeRoom.controller.pos);
             } else {

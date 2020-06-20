@@ -14,30 +14,32 @@ const ROLES = {
     HARVESTER : {spawnPriority: 0, roleName: defRoles.HARVESTER, originalParts: [WORK,CARRY,CARRY,MOVE,MOVE], originalAmount: 4, condition: true}, 
     HAULER : {spawnPriority: 1, roleName: defRoles.HAULER, originalParts: [CARRY,MOVE,MOVE,MOVE,MOVE,MOVE], originalAmount: 1, condition: true},
     MINEHEAD : {spawnPriority: 2, roleName: defRoles.MINEHEAD, originalParts: [WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,MOVE], originalAmount: 4, condition: true},
-    BUILDER : {spawnPriority: 3, roleName: defRoles.BUILDER, originalParts: [WORK,CARRY,CARRY,MOVE,MOVE], originalAmount: 5, condition: true}, // TODO спавнить строителей на основе общего количества хитпоинтов которые надо построить в комнате
+    BUILDER : {spawnPriority: 3, roleName: defRoles.BUILDER, originalParts: [WORK,CARRY,CARRY,MOVE,MOVE], originalAmount: 0, condition: true}, // TODO спавнить строителей на основе общего количества хитпоинтов которые надо построить в комнате
     COBBLER : {spawnPriority: 4, roleName: defRoles.COBBLER, originalParts: [WORK,WORK,CARRY,CARRY,MOVE,MOVE], originalAmount: 2, condition: true},
     UPGRADER : {spawnPriority: 5, roleName: defRoles.UPGRADER, originalParts: [WORK,CARRY,CARRY,MOVE,MOVE], originalAmount: 1, condition: true},
-    LONG_DISTANCE_MINER : {spawnPriority: 6, roleName: defRoles.LONG_DISTANCE_MINER, originalParts: [WORK,WORK,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE], originalAmount: 4, condition: true},
+    LONG_DISTANCE_MINER : {spawnPriority: 6, roleName: defRoles.LONG_DISTANCE_MINER, originalParts: [WORK,WORK,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE], originalAmount: 9, condition: true},
     CLAIMER : {spawnPriority: 7, roleName: defRoles.CLAIMER, originalParts: [CLAIM,MOVE], originalAmount: 1, condition: true}//,
     //GUARD_
 };
 
 // TODO
-// Use Room.energyAvailable and Room.energyCapacityAvailable to determine how much energy all the spawns and extensions in the room contain.
 // Game.gcl 
 
 const _visualizeNextSpawnedUnit = function(role) {
     // Визуализация - оглашение следующего претендента на спавн
-    if(!Game.spawns['Spawn1'].spawning) { 
-        Game.spawns['Spawn1'].room.visual.text(
-            '🎉 Next: ️' + role.roleName,
-            Game.spawns['Spawn1'].pos.x + 1, 
-            Game.spawns['Spawn1'].pos.y, 
-            {align: 'left', opacity: 0.8});
+    for (let spawnName in Game.spawns) {
+        const spawn = Game.spawns[spawnName];
+        if(!spawn.spawning) { 
+            spawn.room.visual.text(
+                '🎉 Next: ️' + role.roleName,
+                spawn.pos.x + 1, 
+                spawn.pos.y, 
+                {align: 'left', opacity: 0.8});
+        }
     }
 };
 
-const _determineCreepParts = function(maximumCost, pattern=[]) {
+const _determineCreepParts = function(maximumCost, pattern=[], partLimits=[]) {
     let parts = [];
     const costs = new Map();
     costs.set(MOVE, 50).set(WORK, 100).set(CARRY, 50).set(ATTACK, 80).set(RANGED_ATTACK, 150).set(HEAL, 250).set(CLAIM, 600).set(TOUGH, 10);
@@ -48,6 +50,14 @@ const _determineCreepParts = function(maximumCost, pattern=[]) {
             cost = 0;
             for (let j = 0; j < parts.length; ++j)
                 cost += costs.get(parts[j]);
+            
+            if (partLimits.length) {
+                for(let k = 0; k < partLimits.length; ++k) {
+                    //const partName = partLimits[k][0];
+                    //const partMaximum = partLimits[k][1];
+                }
+            }
+            
             const nextPart = pattern[i++ % pattern.length];
             if (cost + costs.get(nextPart) <= maximumCost)
                 parts = parts.concat(nextPart)
@@ -74,15 +84,33 @@ _getRoles = function(room) {
         room.find(FIND_STRUCTURES, { filter: (i) => i.structureType == STRUCTURE_CONTAINER }).length;
     copy.LONG_DISTANCE_MINER.condition = 
         room.find(FIND_STRUCTURES, { filter: (i) => i.structureType == STRUCTURE_CONTAINER || i.structureType == STRUCTURE_STORAGE }).length &&
-        _.filter(Game.flags, (flag) => flag.color == COLOR_YELLOW/* && !flag.room.controller.reservation падает если нет вижна в комнате*/).length 
+        _.filter(Game.flags, (flag) => flag.color == COLOR_YELLOW && !flag.room.controller && !flag.room.controller.my).length 
     copy.CLAIMER.condition = 
-        _.filter(Game.flags, (flag) => flag.color == COLOR_YELLOW).length;
+        _.filter(Game.flags, (flag) => flag.color == COLOR_YELLOW && !flag.room.controller && !flag.room.controller.my).length;
+    
+    copy.MINEHEAD.partLimits = [[part=WORK, maxAmount=5, stopBuildingCreepAfterThresholdIsReached=true]];
     
     const amountOfHarvesters = _.filter(Game.creeps, (creep) => creep.room == room && creep.GetRole() == defRoles.HARVESTER).length;
     const energyLimit = amountOfHarvesters > 0 ? room.energyCapacityAvailable : room.energyAvailable;
-        
+    
+    // Небольшая оптимизация. Если есть харвестер, и хоулер уже построен, а шахтеров еще не максимальное количество, то бутылочное горлышко в шахтерах
+    // поэтому увеличиваем им приоритет
+    if (amountOfHarvesters > 0) {
+        const haulersExist = _.filter(Game.creeps, (creep) => creep.room == room && creep.GetRole() == defRoles.HAULER).length;
+        const amountOfMineheads =  _.filter(Game.creeps, (creep) => creep.room == room && creep.GetRole() == defRoles.MINEHEAD).length;
+        if (haulersExist && copy.MINEHEAD.amount < amountOfMineheads) {
+            copy.MINEHEAD.spawnPriority = -1;
+        }
+    }
+    // TODO существует теоретический лимит на мощность шахтеров, начиная с определенного момента они начинают добывать источник быстрее, чем он регенерирует
+    // Нет смысла делать шахтеров более мощными после достижения скорости выработки сравнимой со скоростью регенерации источника
+    // TODO шахтеров можно попытаться начать renew'вить, если это уменьшит издержки
+    // one WORK part Harvests 2 energy units from a source per tick.
+    // source regens is 300 ticks and contains 3000 energy, получается за 300 секунд нужно добывать 3к энергии, 300 * кол-во частей work = 3000
+    
+    
     for(let role of Object.values(copy)) {
-        role.parts = _determineCreepParts(energyLimit, role.originalParts);
+        role.parts = _determineCreepParts(energyLimit, role.originalParts, role.partLimits);
         role.amount = _determineCreepAmount(role.originalAmount, role.originalParts, role.parts);
     }
     
@@ -126,28 +154,31 @@ module.exports = {
     
     SpawnUnitsIfNeeded: function(debugVisuals=true) {
         
-        const spawn = Game.spawns['Spawn1'];
-        let roles = _getRoles(spawn.room);
-        
-        if (debugVisuals) {
-            _visualizeCreepAmounts(spawn.room, roles);
-        }
-        
-        // Добавляем нехватающих крипов на основе их spawnPriority
-        for(let role of _.sortBy(Object.values(roles),'spawnPriority')) 
-        {
-            const roleMembers = _.filter(Game.creeps, (creep) => creep.GetRole() == role.roleName);
-            if (roleMembers.length < role.amount && role.condition) {
-                const newName = role.roleName + Game.time;
-                let errorCode = spawn.spawnCreep(role.parts, newName, { dryRun: true });
-                if (errorCode == OK) {
-                    console.log('Spawning new creep: ' + newName);
-                    spawn.spawnCreep(role.parts, newName, { memory: {role: role.roleName, spawner: spawn.name}});
-                    return; // очень важный return, чтобы spawnCreep не перезаписывался последующими итерациями в цикле (выходим, чтобы последующих итераций просто не было)
-                }
-                if (errorCode == ERR_NOT_ENOUGH_ENERGY) {
-                    _visualizeNextSpawnedUnit(role);
-                    return; // выходим, если не хватило эенергии на спавн приоритетного юнита (ждем пока появится энергия)
+        for (let spawnName in Game.spawns) {
+            
+            const spawn = Game.spawns[spawnName];
+            let roles = _getRoles(spawn.room);
+            
+            if (debugVisuals) {
+                _visualizeCreepAmounts(spawn.room, roles);
+            }
+            
+            // Добавляем нехватающих крипов на основе их spawnPriority
+            for(let role of _.sortBy(Object.values(roles),'spawnPriority')) 
+            {
+                const roleMembers = _.filter(Game.creeps, (creep) => creep.GetRole() == role.roleName);
+                if (roleMembers.length < role.amount && role.condition) {
+                    const newName = role.roleName + Game.time;
+                    let errorCode = spawn.spawnCreep(role.parts, newName, { dryRun: true });
+                    if (errorCode == OK) {
+                        console.log('Spawning new creep: ' + newName);
+                        spawn.spawnCreep(role.parts, newName, { memory: {role: role.roleName, spawner: spawn.name}});
+                        return; // очень важный return, чтобы spawnCreep не перезаписывался последующими итерациями в цикле (выходим, чтобы последующих итераций просто не было)
+                    }
+                    if (errorCode == ERR_NOT_ENOUGH_ENERGY) {
+                        _visualizeNextSpawnedUnit(role);
+                        return; // выходим, если не хватило эенергии на спавн приоритетного юнита (ждем пока появится энергия)
+                    }
                 }
             }
         }
